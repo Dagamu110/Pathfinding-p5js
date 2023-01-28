@@ -1,5 +1,5 @@
 var world;
-var pathPoints =  [{ x: 170, y:60 }, { x:300, y:125 }];
+var pathPoints = []
 
 var pause = false
 function keyPressed(){
@@ -29,6 +29,7 @@ function addNewPathPoint(){
 }
 
 function mousePressed(){
+    if( !world ){ return }
     switch( pathPoints.length ){
         case 2:
             pathPoints = []
@@ -42,12 +43,22 @@ function mousePressed(){
     }
 }
 
-var pPoints = []
+var seedInput;
+function newWorld(){
+    world = new World( seedInput.value() )
+    pPoints = undefined
+}
+
+var pPoints;
 function setup() {
     createCanvas(400, 400, P2D)
 
-    world = new World( 70 ) // 70
-    newPathFind( world )
+    seedInput = createInput()
+    seedInput.parent('container')
+    seedInput.attribute( 'placeholder', 'Seed')
+    seedBtn = createButton('Create New Map')
+    seedBtn.mousePressed( newWorld )
+    seedBtn.parent('container')
 }
 
 function draw() {
@@ -55,29 +66,35 @@ function draw() {
 
     //frameRate(4)
 
-    world.show()
-    let color = world.collision( {x:mouseX, y:mouseY} ) ? 'red' : 'white'
-    fill( color )
-    circle( mouseX, mouseY, 5 )
-    fill( 'green' )
-    text( floor(mouseX)+', '+floor(mouseY), mouseX, mouseY- 10 )
+    if( world ){
 
-    if( !pause && !pPoints.ready){
-        pPoints.getNextPoints()
+        world.show()
+        let color = world.collision( {x:mouseX, y:mouseY} ) ? 'red' : 'white'
+        fill( color )
+        circle( mouseX, mouseY, 5 )
+        fill( 255 )
+        text( floor(mouseX)+', '+floor(mouseY), 10, 20 )
+
+        if( pPoints ){
+            if( !pause && !pPoints.ready ){
+                pPoints.getNextPoints()
+            }
+            if ( pPoints.path.length == 0 && pPoints.ready ){
+                pPoints.getPath().forEach( p => {
+                    circle( p.x, p.y, 5 )
+                } )
+            } 
+
+            if( pPoints.path.length ){
+                pPoints.showPath()
+            } else {
+                pPoints.showPoints()
+            }
+
+        }
+        drawPathPoints()
     }
-    if ( pPoints.path.length == 0 && pPoints.ready ){
-        pPoints.getPath().forEach( p => {
-            circle( p.x, p.y, 5 )
-        } )
-    } 
 
-    if( pPoints.path.length ){
-        pPoints.showPath()
-    } else {
-        pPoints.showPoints()
-    }
-
-    drawPathPoints()
 }
 
 function drawPathPoints(){
